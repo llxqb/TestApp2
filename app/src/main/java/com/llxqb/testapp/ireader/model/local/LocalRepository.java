@@ -19,7 +19,6 @@ import com.llxqb.testapp.ireader.model.gen.BookReviewBeanDao;
 import com.llxqb.testapp.ireader.model.gen.DaoSession;
 import com.llxqb.testapp.ireader.model.gen.ReviewBookBeanDao;
 import com.llxqb.testapp.ireader.utils.Constant;
-import com.llxqb.testapp.ireader.utils.LogUtils;
 import com.llxqb.testapp.ireader.utils.SharedPreUtils;
 
 import org.greenrobot.greendao.Property;
@@ -292,10 +291,8 @@ public class LocalRepository implements SaveDbHelper,GetDbHelper,DeleteDbHelper{
             queryBuilder.orderDesc(property);
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
-            LogUtils.e(e);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-            LogUtils.e(e);
         }
     }
 

@@ -8,7 +8,6 @@ import com.llxqb.testapp.ireader.model.local.BookRepository;
 import com.llxqb.testapp.ireader.model.remote.RemoteRepository;
 import com.llxqb.testapp.ireader.presenter.contract.ReadContract;
 import com.llxqb.testapp.ireader.ui.base.RxPresenter;
-import com.llxqb.testapp.ireader.utils.LogUtils;
 import com.llxqb.testapp.ireader.utils.MD5Utils;
 import com.llxqb.testapp.ireader.utils.RxUtils;
 import com.llxqb.testapp.ireader.widget.page.TxtChapter;
@@ -58,7 +57,6 @@ public class ReadPresenter extends RxPresenter<ReadContract.View>
                         ,
                         e -> {
                             //TODO: Haven't grate conversation method.
-                            LogUtils.e(e);
                         }
                 );
         addDisposable(disposable);
@@ -118,7 +116,6 @@ public class ReadPresenter extends RxPresenter<ReadContract.View>
                                 if (bookChapters.get(0).getTitle().equals(title)) {
                                     mView.errorChapter();
                                 }
-                                LogUtils.e(t);
                             }
 
                             @Override

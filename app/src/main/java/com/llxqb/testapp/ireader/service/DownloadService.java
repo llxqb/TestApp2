@@ -20,7 +20,6 @@ import com.llxqb.testapp.ireader.model.local.LocalRepository;
 import com.llxqb.testapp.ireader.model.remote.RemoteRepository;
 import com.llxqb.testapp.ireader.ui.base.BaseService;
 import com.llxqb.testapp.ireader.utils.BookManager;
-import com.llxqb.testapp.ireader.utils.LogUtils;
 import com.llxqb.testapp.ireader.utils.NetworkUtils;
 
 import java.util.ArrayList;
@@ -315,7 +314,6 @@ public class DownloadService extends BaseService {
                         },
                         e -> {
                             //当前进度加载错误（这里需要判断是什么问题，根据相应的问题做出相应的回答）
-                            LogUtils.e(e);
                             //设置加载结果
                             result[0] = LOAD_ERROR;
                         }

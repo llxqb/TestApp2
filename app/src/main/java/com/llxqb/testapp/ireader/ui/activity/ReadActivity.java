@@ -43,8 +43,6 @@ import com.llxqb.testapp.ireader.ui.adapter.CategoryAdapter;
 import com.llxqb.testapp.ireader.ui.base.BaseMVPActivity;
 import com.llxqb.testapp.ireader.ui.dialog.ReadSettingDialog;
 import com.llxqb.testapp.ireader.utils.BrightnessUtils;
-import com.llxqb.testapp.ireader.utils.Constant;
-import com.llxqb.testapp.ireader.utils.LogUtils;
 import com.llxqb.testapp.ireader.utils.RxUtils;
 import com.llxqb.testapp.ireader.utils.ScreenUtils;
 import com.llxqb.testapp.ireader.utils.StringUtils;
@@ -347,7 +345,6 @@ public class ReadActivity extends BaseMVPActivity<ReadContract.Presenter>
                 }
             }
         } catch (Throwable throwable) {
-            LogUtils.e(TAG, "register mBrightObserver error! " + throwable);
         }
     }
 
@@ -361,7 +358,6 @@ public class ReadActivity extends BaseMVPActivity<ReadContract.Presenter>
                 }
             }
         } catch (Throwable throwable) {
-            LogUtils.e(TAG, "unregister BrightnessObserver error! " + throwable);
         }
     }
 
@@ -630,7 +626,6 @@ public class ReadActivity extends BaseMVPActivity<ReadContract.Presenter>
                                 if (mCollBook.isUpdate() && !mCollBook.isLocal()) {
                                     mPresenter.loadCategory(mBookId);
                                 }
-                                LogUtils.e(throwable);
                             }
                     );
             addDisposable(disposable);

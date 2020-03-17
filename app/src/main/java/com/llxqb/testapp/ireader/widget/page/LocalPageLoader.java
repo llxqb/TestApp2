@@ -9,7 +9,6 @@ import com.llxqb.testapp.ireader.utils.Charset;
 import com.llxqb.testapp.ireader.utils.Constant;
 import com.llxqb.testapp.ireader.utils.FileUtils;
 import com.llxqb.testapp.ireader.utils.IOUtils;
-import com.llxqb.testapp.ireader.utils.LogUtils;
 import com.llxqb.testapp.ireader.utils.MD5Utils;
 import com.llxqb.testapp.ireader.utils.RxUtils;
 import com.llxqb.testapp.ireader.utils.StringUtils;
@@ -419,7 +418,6 @@ public class LocalPageLoader extends PageLoader {
                     @Override
                     public void onError(Throwable e) {
                         chapterError();
-                        LogUtils.d(TAG, "file load error:" + e.toString());
                     }
                 });
     }
