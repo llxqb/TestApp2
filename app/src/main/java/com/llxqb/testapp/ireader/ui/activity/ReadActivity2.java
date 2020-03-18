@@ -1,7 +1,6 @@
 package com.llxqb.testapp.ireader.ui.activity;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -32,15 +31,7 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
 import com.llxqb.testapp.R;
-import com.llxqb.testapp.di.components.DaggerReadBookComponent;
-import com.llxqb.testapp.di.modules.ActivityModule;
-import com.llxqb.testapp.di.modules.ReadBookModule;
-import com.llxqb.testapp.entity.request.ReadingBookRequest;
-import com.llxqb.testapp.entity.request.SelectionRequest;
-import com.llxqb.testapp.entity.response.ReadingBookResponse;
-import com.llxqb.testapp.entity.response.SelectionResponse;
 import com.llxqb.testapp.ireader.model.bean.BookChapterBean;
 import com.llxqb.testapp.ireader.model.bean.CollBookBean;
 import com.llxqb.testapp.ireader.model.local.BookRepository;
@@ -48,6 +39,7 @@ import com.llxqb.testapp.ireader.model.local.ReadSettingManager;
 import com.llxqb.testapp.ireader.presenter.ReadPresenter;
 import com.llxqb.testapp.ireader.presenter.contract.ReadContract;
 import com.llxqb.testapp.ireader.ui.adapter.CategoryAdapter;
+import com.llxqb.testapp.ireader.ui.base.BaseMVPActivity;
 import com.llxqb.testapp.ireader.ui.dialog.ReadSettingDialog;
 import com.llxqb.testapp.ireader.utils.BrightnessUtils;
 import com.llxqb.testapp.ireader.utils.RxUtils;
@@ -57,12 +49,8 @@ import com.llxqb.testapp.ireader.utils.SystemBarUtils;
 import com.llxqb.testapp.ireader.widget.page.PageLoader;
 import com.llxqb.testapp.ireader.widget.page.PageView;
 import com.llxqb.testapp.ireader.widget.page.TxtChapter;
-import com.llxqb.testapp.mvp.base.BaseActivity;
-import com.llxqb.testapp.mvp.read.ReadBookControl;
 
 import java.util.List;
-
-import javax.inject.Inject;
 
 import butterknife.BindView;
 import io.reactivex.disposables.Disposable;
@@ -75,9 +63,7 @@ import static android.view.View.VISIBLE;
  * Created by newbiechen on 17-5-16.
  */
 
-public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBookView {
-    @Inject
-    ReadBookControl.PresenterReadBook mPresenter;
+public class ReadActivity2 extends BaseMVPActivity<ReadContract.Presenter> implements ReadContract.View {
     private static final String TAG = "ReadActivity";
     public static final int REQUEST_MORE_SETTING = 1;
     public static final String EXTRA_COLL_BOOK = "extra_coll_book";
@@ -189,12 +175,12 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
             // 如果系统亮度改变，则修改当前 Activity 亮度
             if (BRIGHTNESS_MODE_URI.equals(uri)) {
                 Log.d(TAG, "亮度模式改变");
-            } else if (BRIGHTNESS_URI.equals(uri) && !BrightnessUtils.isAutoBrightness(ReadActivity.this)) {
+            } else if (BRIGHTNESS_URI.equals(uri) && !BrightnessUtils.isAutoBrightness(ReadActivity2.this)) {
                 Log.d(TAG, "亮度模式为手动模式 值改变");
-                BrightnessUtils.setBrightness(ReadActivity.this, BrightnessUtils.getScreenBrightness(ReadActivity.this));
-            } else if (BRIGHTNESS_ADJ_URI.equals(uri) && BrightnessUtils.isAutoBrightness(ReadActivity.this)) {
+                BrightnessUtils.setBrightness(ReadActivity2.this, BrightnessUtils.getScreenBrightness(ReadActivity2.this));
+            } else if (BRIGHTNESS_ADJ_URI.equals(uri) && BrightnessUtils.isAutoBrightness(ReadActivity2.this)) {
                 Log.d(TAG, "亮度模式为自动模式 值改变");
-                BrightnessUtils.setDefaultBrightness(ReadActivity.this);
+                BrightnessUtils.setDefaultBrightness(ReadActivity2.this);
             } else {
                 Log.d(TAG, "亮度调整 其他");
             }
@@ -210,52 +196,51 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
     private String mBookId;
 
     public static void startActivity(Context context, CollBookBean collBook, boolean isCollected) {
-        context.startActivity(new Intent(context, ReadActivity.class)
+        context.startActivity(new Intent(context, ReadActivity2.class)
                 .putExtra(EXTRA_IS_COLLECTED, isCollected)
                 .putExtra(EXTRA_COLL_BOOK, collBook));
     }
 
-
     @Override
-    protected void initContentView() {
-        setContentView(R.layout.activity_read);
-        initInjectData();
+    protected int getContentId() {
+        return R.layout.activity_read;
     }
 
     @Override
-    public void initView() {
+    protected ReadContract.Presenter bindPresenter() {
+        return new ReadPresenter();
+    }
+
+    @Override
+    protected void initData(Bundle savedInstanceState) {
+        super.initData(savedInstanceState);
         mCollBook = getIntent().getParcelableExtra(EXTRA_COLL_BOOK);
         isCollected = getIntent().getBooleanExtra(EXTRA_IS_COLLECTED, false);
         isNightMode = ReadSettingManager.getInstance().isNightMode();
         isFullScreen = ReadSettingManager.getInstance().isFullScreen();
+
         mBookId = mCollBook.get_id();
+    }
+
+    @Override
+    protected void setUpToolbar(Toolbar toolbar) {
+        super.setUpToolbar(toolbar);
         //设置标题
-//        toolbar.setTitle(mCollBook.getTitle());
+        toolbar.setTitle(mCollBook.getTitle());
         //半透明化StatusBar
         SystemBarUtils.transparentStatusBar(this);
     }
 
-    @Override
-    public void initData() {
-        initWidget();
-        initClick();
-        onRequestBookInfo();
-        onRequestSelectionInfo();
-    }
-
-
-//    @Override
-//    protected void setUpToolbar(Toolbar toolbar) {
-//        super.setUpToolbar(toolbar);
-//        //设置标题
-//        toolbar.setTitle(mCollBook.getTitle());
-//        //半透明化StatusBar
-//        SystemBarUtils.transparentStatusBar(this);
-//    }
-
     @SuppressLint("InvalidWakeLockTag")
+    @Override
     protected void initWidget() {
+        super.initWidget();
+
         // 如果 API < 18 取消硬件加速
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            mPvPage.setLayerType(LAYER_TYPE_SOFTWARE, null);
+        }
 
         //获取页面加载器
         mPageLoader = mPvPage.getPageLoader(mCollBook);
@@ -300,7 +285,9 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
     }
 
     private void initTopMenu() {
-        mAblTopMenu.setPadding(0, ScreenUtils.getStatusBarHeight(), 0, 0);
+        if (Build.VERSION.SDK_INT >= 19) {
+            mAblTopMenu.setPadding(0, ScreenUtils.getStatusBarHeight(), 0, 0);
+        }
     }
 
     private void initBottomMenu() {
@@ -372,87 +359,56 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
         }
     }
 
-    /**
-     * 请求书籍信息
-     */
-    private void onRequestBookInfo() {
-        ReadingBookRequest readingBookRequest = new ReadingBookRequest();
-        readingBookRequest.token = "32a85c49806810b0a141fe8236f97a2f";
-        readingBookRequest.book_id = "17";
-        readingBookRequest.catalogue_id = "712";
-        mPresenter.onRequestBookInfo(readingBookRequest);
-    }
-
-    /**
-     * 请求书籍选集信息
-     */
-    private void onRequestSelectionInfo() {
-        SelectionRequest selectionRequest = new SelectionRequest();
-        selectionRequest.token = "32a85c49806810b0a141fe8236f97a2f";
-        selectionRequest.book_id = "17";
-        selectionRequest.orderby = "asc";
-        selectionRequest.page = "1";
-        selectionRequest.pagesize = "5000";//
-        mPresenter.onRequestSelectionInfo(selectionRequest);
-    }
-
     @Override
-    public void getReadingBookInfoSuccess(ReadingBookResponse readingBookResponse) {
-        Log.e("ReadActivity", "readingBookResponse:" + new Gson().toJson(readingBookResponse));
-    }
-
-    @Override
-    public void getSelectionInfoSuccess(SelectionResponse selectionResponse) {
-        Log.e("ReadActivity", "selectionResponse:" + new Gson().toJson(selectionResponse));
-    }
-
     protected void initClick() {
-//        mPageLoader.setOnPageChangeListener(
-//                new PageLoader.OnPageChangeListener() {
-//
-//                    @Override
-//                    public void onChapterChange(int pos) {
-//                        mCategoryAdapter.setChapter(pos);
-//                    }
-//
-//                    @Override
-//                    public void requestChapters(List<TxtChapter> requestChapters) {
-//                        mPresenter.loadChapter(mBookId, requestChapters);
-//                        mHandler.sendEmptyMessage(WHAT_CATEGORY);
-//                        //隐藏提示
-//                        mTvPageTip.setVisibility(GONE);
-//                    }
-//
-//                    @Override
-//                    public void onCategoryFinish(List<TxtChapter> chapters) {
-//                        for (TxtChapter chapter : chapters) {
-//                            chapter.setTitle(StringUtils.convertCC(chapter.getTitle(), mPvPage.getContext()));
-//                        }
-//                        mCategoryAdapter.refreshItems(chapters);
-//                    }
-//
-//                    @Override
-//                    public void onPageCountChange(int count) {
-//                        mSbChapterProgress.setMax(Math.max(0, count - 1));
-//                        mSbChapterProgress.setProgress(0);
-//                        // 如果处于错误状态，那么就冻结使用
-//                        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING
-//                                || mPageLoader.getPageStatus() == PageLoader.STATUS_ERROR) {
-//                            mSbChapterProgress.setEnabled(false);
-//                        }
-//                        else {
-//                            mSbChapterProgress.setEnabled(true);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onPageChange(int pos) {
-//                        mSbChapterProgress.post(
-//                                () -> mSbChapterProgress.setProgress(pos)
-//                        );
-//                    }
-//                }
-//        );
+        super.initClick();
+
+        mPageLoader.setOnPageChangeListener(
+                new PageLoader.OnPageChangeListener() {
+
+                    @Override
+                    public void onChapterChange(int pos) {
+                        mCategoryAdapter.setChapter(pos);
+                    }
+
+                    @Override
+                    public void requestChapters(List<TxtChapter> requestChapters) {
+                        mPresenter.loadChapter(mBookId, requestChapters);
+                        mHandler.sendEmptyMessage(WHAT_CATEGORY);
+                        //隐藏提示
+                        mTvPageTip.setVisibility(GONE);
+                    }
+
+                    @Override
+                    public void onCategoryFinish(List<TxtChapter> chapters) {
+                        for (TxtChapter chapter : chapters) {
+                            chapter.setTitle(StringUtils.convertCC(chapter.getTitle(), mPvPage.getContext()));
+                        }
+                        mCategoryAdapter.refreshItems(chapters);
+                    }
+
+                    @Override
+                    public void onPageCountChange(int count) {
+                        mSbChapterProgress.setMax(Math.max(0, count - 1));
+                        mSbChapterProgress.setProgress(0);
+                        // 如果处于错误状态，那么就冻结使用
+                        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING
+                                || mPageLoader.getPageStatus() == PageLoader.STATUS_ERROR) {
+                            mSbChapterProgress.setEnabled(false);
+                        }
+                        else {
+                            mSbChapterProgress.setEnabled(true);
+                        }
+                    }
+
+                    @Override
+                    public void onPageChange(int pos) {
+                        mSbChapterProgress.post(
+                                () -> mSbChapterProgress.setProgress(pos)
+                        );
+                    }
+                }
+        );
 
         mSbChapterProgress.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
@@ -650,60 +606,72 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
         mBottomOutAnim.setDuration(200);
     }
 
+    @Override
     protected void processLogic() {
-//        // 如果是已经收藏的，那么就从数据库中获取目录
-//        if (isCollected) {
-//            Disposable disposable = BookRepository.getInstance()
-//                    .getBookChaptersInRx(mBookId)
-//                    .compose(RxUtils::toSimpleSingle)
-//                    .subscribe(
-//                            (bookChapterBeen, throwable) -> {
-//                                // 设置 CollBook
-//                                mPageLoader.getCollBook().setBookChapters(bookChapterBeen);
-//                                // 刷新章节列表
-//                                mPageLoader.refreshChapterList();
-//                                // 如果是网络小说并被标记更新的，则从网络下载目录
-//                                if (mCollBook.isUpdate() && !mCollBook.isLocal()) {
-//                                    mPresenter.loadCategory(mBookId);
-//                                }
-//                            }
-//                    );
-//            addDisposable(disposable);
-//        } else {
-//            // 从网络中获取目录
-//            mPresenter.loadCategory(mBookId);
-//        }
+        super.processLogic();
+        // 如果是已经收藏的，那么就从数据库中获取目录
+        if (isCollected) {
+            Disposable disposable = BookRepository.getInstance()
+                    .getBookChaptersInRx(mBookId)
+                    .compose(RxUtils::toSimpleSingle)
+                    .subscribe(
+                            (bookChapterBeen, throwable) -> {
+                                // 设置 CollBook
+                                mPageLoader.getCollBook().setBookChapters(bookChapterBeen);
+                                // 刷新章节列表
+                                mPageLoader.refreshChapterList();
+                                // 如果是网络小说并被标记更新的，则从网络下载目录
+                                if (mCollBook.isUpdate() && !mCollBook.isLocal()) {
+                                    mPresenter.loadCategory(mBookId);
+                                }
+                            }
+                    );
+            addDisposable(disposable);
+        } else {
+            // 从网络中获取目录
+            mPresenter.loadCategory(mBookId);
+        }
     }
 
     /***************************view************************************/
+    @Override
+    public void showError() {
 
-//    @Override
-//    public void showCategory(List<BookChapterBean> bookChapters) {
-//        mPageLoader.getCollBook().setBookChapters(bookChapters);
-//        mPageLoader.refreshChapterList();
-//
-//        // 如果是目录更新的情况，那么就需要存储更新数据
-//        if (mCollBook.isUpdate() && isCollected) {
-//            BookRepository.getInstance()
-//                    .saveBookChaptersWithAsync(bookChapters);
-//        }
-//    }
-//
-//    @Override
-//    public void finishChapter() {
-//        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING) {
-//            mHandler.sendEmptyMessage(WHAT_CHAPTER);
-//        }
-//        // 当完成章节的时候，刷新列表
-//        mCategoryAdapter.notifyDataSetChanged();
-//    }
-//
-//    @Override
-//    public void errorChapter() {
-//        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING) {
-//            mPageLoader.chapterError();
-//        }
-//    }
+    }
+
+    @Override
+    public void complete() {
+
+    }
+
+    @Override
+    public void showCategory(List<BookChapterBean> bookChapters) {
+        mPageLoader.getCollBook().setBookChapters(bookChapters);
+        mPageLoader.refreshChapterList();
+
+        // 如果是目录更新的情况，那么就需要存储更新数据
+        if (mCollBook.isUpdate() && isCollected) {
+            BookRepository.getInstance()
+                    .saveBookChaptersWithAsync(bookChapters);
+        }
+    }
+
+    @Override
+    public void finishChapter() {
+        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING) {
+            mHandler.sendEmptyMessage(WHAT_CHAPTER);
+        }
+        // 当完成章节的时候，刷新列表
+        mCategoryAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void errorChapter() {
+        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING) {
+            mPageLoader.chapterError();
+        }
+    }
+
     @Override
     public void onBackPressed() {
         if (mAblTopMenu.getVisibility() == View.VISIBLE) {
@@ -784,7 +752,6 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
         unregisterBrightObserver();
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -836,12 +803,4 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
             }
         }
     }
-
-    private void initInjectData() {
-        DaggerReadBookComponent.builder().appComponent(getAppComponent())
-                .readBookModule(new ReadBookModule(this, this))
-                .activityModule(new ActivityModule(this)).build().inject(this);
-    }
-
-
 }
