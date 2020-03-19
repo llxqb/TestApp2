@@ -29,7 +29,7 @@
             android:layout_above="@+id/read_ll_bottom_menu"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="10dp"
-            android:background="@color/nb.read.menu.bg"
+            android:background="@color/nb_read_menu_bg"
             android:gravity="center"
             android:paddingBottom="8dp"
             android:paddingLeft="12dp"
@@ -44,7 +44,7 @@
             android:id="@+id/read_abl_top_menu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/nb.read.menu.bg"
+            android:background="@color/nb_read_menu_bg"
             android:visibility="gone"
             tools:visibility="visible">
 
@@ -63,7 +63,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:background="@color/nb.read.menu.bg"
+            android:background="@color/nb_read_menu_bg"
             android:clickable="true"
             android:orientation="vertical"
             android:visibility="gone"
@@ -117,13 +117,13 @@
                     android:id="@+id/read_tv_category"
                     style="@style/NB.Theme.TextAppearance.Read.BottomMenu.Button"
                     android:drawableTop="@drawable/ic_read_menu_category"
-                    android:text="@string/nb.read.category" />
+                    android:text="@string/nb_read_category" />
 
                 <TextView
                     android:id="@+id/read_tv_night_mode"
                     style="@style/NB.Theme.TextAppearance.Read.BottomMenu.Button"
                     android:drawableTop="@drawable/ic_read_menu_night"
-                    android:text="@string/nb.mode.night" />
+                    android:text="@string/nb_mode_night" />
 
                 <!--                <TextView
                                     style="@style/NB.Theme.TextAppearance.Read.BottomMenu.Button"
@@ -135,7 +135,7 @@
                     android:id="@+id/read_tv_setting"
                     style="@style/NB.Theme.TextAppearance.Read.BottomMenu.Button"
                     android:drawableTop="@drawable/ic_read_menu_font"
-                    android:text="@string/nb.read.setting" />
+                    android:text="@string/nb_read_setting" />
             </LinearLayout>
         </LinearLayout>
     </RelativeLayout>
@@ -157,7 +157,7 @@
             android:layout_marginBottom="8dp"
             android:layout_marginLeft="15dp"
             android:text="目录"
-            android:textColor="@color/nb.text.default"
+            android:textColor="@color/nb_text_default"
             android:textSize="20sp" />
 
         <RelativeLayout

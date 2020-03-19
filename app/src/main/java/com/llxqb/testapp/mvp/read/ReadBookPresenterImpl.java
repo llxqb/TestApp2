@@ -226,11 +226,6 @@ public class ReadBookPresenterImpl implements ReadBookControl.PresenterReadBook 
      * 根据章节id获取章节内容
      */
     public void onRequestChapterInfo(BookContentRequest bookContentRequest,String bookId,String title) {
-//        Disposable disposable = mBookModel.onRequestChapterInfo(bookContentRequest).compose(mReadBookView.applySchedulers()).retryWhen(new RetryWithDelay(3, 3000))
-//                .subscribe(this::requestChapterInfoSuccess, throwable -> mReadBookView.showErrMessage(throwable),
-//                        () -> mReadBookView.dismissLoading());
-//        mReadBookView.addSubscription(disposable);
-
         mBookModel.onRequestChapterInfo(bookContentRequest).compose(mReadBookView.applySchedulers()).retryWhen(new RetryWithDelay(3, 3000))
                 .subscribe(new Observer<ResponseData>() {
                     @Override

@@ -4,8 +4,6 @@ import android.content.Context;
 import android.support.annotation.StringRes;
 
 import com.llxqb.testapp.App;
-import com.zqc.opencc.android.lib.ChineseConverter;
-import com.zqc.opencc.android.lib.ConversionType;
 
 import java.text.DateFormat;
 import java.text.ParseException;

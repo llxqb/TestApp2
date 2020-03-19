@@ -2,7 +2,6 @@ package com.llxqb.testapp.ireader.ui.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,7 +21,6 @@ import android.widget.TextView;
 
 import com.llxqb.testapp.R;
 import com.llxqb.testapp.ireader.model.local.ReadSettingManager;
-import com.llxqb.testapp.ireader.ui.activity.ReadActivity;
 import com.llxqb.testapp.ireader.ui.adapter.PageStyleAdapter;
 import com.llxqb.testapp.ireader.utils.BrightnessUtils;
 import com.llxqb.testapp.ireader.utils.ScreenUtils;
