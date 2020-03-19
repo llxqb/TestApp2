@@ -10,6 +10,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.text.TextPaint;
+import android.util.Log;
 
 
 import com.llxqb.testapp.ireader.model.bean.BookRecordBean;
@@ -1277,7 +1278,7 @@ public abstract class PageLoader {
 
                         continue;
                     }
-
+                    paragraph = ToDBC(paragraph);
                     //测量一行占用的字节数
                     if (showTitle) {
                         wordCount = mTitlePaint.breakText(paragraph,
@@ -1336,6 +1337,20 @@ public abstract class PageLoader {
         return pages;
     }
 
+    /**
+     * 半角转为全角的代码如下
+     */
+    public static String ToDBC(String input) {
+        char[] c = input.toCharArray();
+        for (int i = 0; i< c.length; i++) {
+            if (c[i] == 12288) {
+                c[i] = (char) 32;
+                continue;
+            }if (c[i]> 65280&& c[i]< 65375)
+                c[i] = (char) (c[i] - 65248);
+        }
+        return new String(c);
+    }
 
     /**
      * @return:获取初始显示的页面

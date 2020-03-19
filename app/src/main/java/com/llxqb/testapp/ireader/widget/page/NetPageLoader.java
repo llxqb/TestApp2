@@ -2,6 +2,9 @@ package com.llxqb.testapp.ireader.widget.page;
 
 
 
+import android.util.Log;
+
+import com.google.gson.Gson;
 import com.llxqb.testapp.ireader.model.bean.BookChapterBean;
 import com.llxqb.testapp.ireader.model.bean.CollBookBean;
 import com.llxqb.testapp.ireader.model.local.BookRepository;
@@ -36,6 +39,7 @@ public class NetPageLoader extends PageLoader {
             chapter.bookId = bean.getBookId();
             chapter.title = bean.getTitle();
             chapter.link = bean.getLink();
+            chapter.chapterId = bean.getChapterId();
             txtChapters.add(chapter);
         }
         return txtChapters;
@@ -43,6 +47,7 @@ public class NetPageLoader extends PageLoader {
 
     @Override
     public void refreshChapterList() {
+        Log.e("ddd"," mCollBook: "+new Gson().toJson(mCollBook));
         if (mCollBook.getBookChapters() == null) return;
 
         // 将 BookChapter 转换成当前可用的 Chapter

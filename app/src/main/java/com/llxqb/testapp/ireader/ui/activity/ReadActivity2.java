@@ -86,10 +86,6 @@ public class ReadActivity2 extends BaseMVPActivity<ReadContract.Presenter> imple
     /*************top_menu_view*******************/
     @BindView(R.id.read_abl_top_menu)
     AppBarLayout mAblTopMenu;
-    @BindView(R.id.read_tv_community)
-    TextView mTvCommunity;
-    @BindView(R.id.read_tv_brief)
-    TextView mTvBrief;
     /***************content_view******************/
     @BindView(R.id.read_pv_page)
     PageView mPvPage;

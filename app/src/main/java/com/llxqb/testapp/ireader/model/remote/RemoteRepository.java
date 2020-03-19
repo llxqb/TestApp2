@@ -1,6 +1,8 @@
 package com.llxqb.testapp.ireader.model.remote;
 
 
+import com.google.gson.Gson;
+import com.llxqb.testapp.entity.request.BookContentRequest;
 import com.llxqb.testapp.ireader.model.bean.BookChapterBean;
 import com.llxqb.testapp.ireader.model.bean.ChapterInfoBean;
 import com.llxqb.testapp.ireader.model.bean.CollBookBean;
@@ -22,17 +24,17 @@ public class RemoteRepository {
     private Retrofit mRetrofit;
     private BookApi mBookApi;
 
-    private RemoteRepository(){
+    private RemoteRepository() {
         mRetrofit = RemoteHelper.getInstance()
                 .getRetrofit();
 
         mBookApi = mRetrofit.create(BookApi.class);
     }
 
-    public static RemoteRepository getInstance(){
-        if (sInstance == null){
-            synchronized (RemoteHelper.class){
-                if (sInstance == null){
+    public static RemoteRepository getInstance() {
+        if (sInstance == null) {
+            synchronized (RemoteHelper.class) {
+                if (sInstance == null) {
                     sInstance = new RemoteRepository();
                 }
             }
@@ -40,18 +42,17 @@ public class RemoteRepository {
         return sInstance;
     }
 
-    public Single<List<CollBookBean>> getRecommendBooks(String gender){
+    public Single<List<CollBookBean>> getRecommendBooks(String gender) {
         return mBookApi.getRecommendBookPackage(gender)
                 .map(bean -> bean.getBooks());
     }
 
-    public Single<List<BookChapterBean>> getBookChapters(String bookId){
+    public Single<List<BookChapterBean>> getBookChapters(String bookId) {
         return mBookApi.getBookChapterPackage(bookId, "chapter")
                 .map(bean -> {
-                    if (bean.getMixToc() == null){
+                    if (bean.getMixToc() == null) {
                         return new ArrayList<BookChapterBean>(1);
-                    }
-                    else {
+                    } else {
                         return bean.getMixToc().getChapters();
                     }
                 });
@@ -59,11 +60,11 @@ public class RemoteRepository {
 
     /**
      * 注意这里用的是同步请求
-     * @param url
+     *
      * @return
      */
-    public Single<ChapterInfoBean> getChapterInfo(String url){
-        return mBookApi.getChapterInfoPackage(url)
+    public Single<ChapterInfoBean> getChapterInfo(BookContentRequest bookContentRequest) {
+        return mBookApi.getChapterInfoPackage(new Gson().toJson(bookContentRequest))
                 .map(bean -> bean.getChapter());
     }
 

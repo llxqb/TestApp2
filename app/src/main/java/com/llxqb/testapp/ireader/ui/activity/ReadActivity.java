@@ -1,7 +1,6 @@
 package com.llxqb.testapp.ireader.ui.activity;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -10,8 +9,6 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
@@ -45,11 +42,10 @@ import com.llxqb.testapp.ireader.model.bean.BookChapterBean;
 import com.llxqb.testapp.ireader.model.bean.CollBookBean;
 import com.llxqb.testapp.ireader.model.local.BookRepository;
 import com.llxqb.testapp.ireader.model.local.ReadSettingManager;
-import com.llxqb.testapp.ireader.presenter.ReadPresenter;
-import com.llxqb.testapp.ireader.presenter.contract.ReadContract;
 import com.llxqb.testapp.ireader.ui.adapter.CategoryAdapter;
 import com.llxqb.testapp.ireader.ui.dialog.ReadSettingDialog;
 import com.llxqb.testapp.ireader.utils.BrightnessUtils;
+import com.llxqb.testapp.ireader.utils.MD5Utils;
 import com.llxqb.testapp.ireader.utils.RxUtils;
 import com.llxqb.testapp.ireader.utils.ScreenUtils;
 import com.llxqb.testapp.ireader.utils.StringUtils;
@@ -60,6 +56,7 @@ import com.llxqb.testapp.ireader.widget.page.TxtChapter;
 import com.llxqb.testapp.mvp.base.BaseActivity;
 import com.llxqb.testapp.mvp.read.ReadBookControl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -68,7 +65,6 @@ import butterknife.BindView;
 import io.reactivex.disposables.Disposable;
 
 import static android.view.View.GONE;
-import static android.view.View.LAYER_TYPE_SOFTWARE;
 import static android.view.View.VISIBLE;
 
 /**
@@ -100,10 +96,8 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
     /*************top_menu_view*******************/
     @BindView(R.id.read_abl_top_menu)
     AppBarLayout mAblTopMenu;
-    @BindView(R.id.read_tv_community)
-    TextView mTvCommunity;
-    @BindView(R.id.read_tv_brief)
-    TextView mTvBrief;
+    @BindView(R.id.toolbar)
+    Toolbar mToolBar;
     /***************content_view******************/
     @BindView(R.id.read_pv_page)
     PageView mPvPage;
@@ -230,7 +224,7 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
         isFullScreen = ReadSettingManager.getInstance().isFullScreen();
         mBookId = mCollBook.get_id();
         //设置标题
-//        toolbar.setTitle(mCollBook.getTitle());
+        mToolBar.setTitle(mCollBook.getTitle());
         //半透明化StatusBar
         SystemBarUtils.transparentStatusBar(this);
     }
@@ -239,24 +233,14 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
     public void initData() {
         initWidget();
         initClick();
-        onRequestBookInfo();
-        onRequestSelectionInfo();
+//        onRequestBookInfo();
+//        onRequestSelectionInfo();
+        processLogic();
     }
 
 
-//    @Override
-//    protected void setUpToolbar(Toolbar toolbar) {
-//        super.setUpToolbar(toolbar);
-//        //设置标题
-//        toolbar.setTitle(mCollBook.getTitle());
-//        //半透明化StatusBar
-//        SystemBarUtils.transparentStatusBar(this);
-//    }
-
     @SuppressLint("InvalidWakeLockTag")
     protected void initWidget() {
-        // 如果 API < 18 取消硬件加速
-
         //获取页面加载器
         mPageLoader = mPvPage.getPageLoader(mCollBook);
         //禁止滑动展示DrawerLayout
@@ -344,18 +328,15 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
 
     // 注册亮度观察者
     private void registerBrightObserver() {
-        try {
-            if (mBrightObserver != null) {
-                if (!isRegistered) {
-                    final ContentResolver cr = getContentResolver();
-                    cr.unregisterContentObserver(mBrightObserver);
-                    cr.registerContentObserver(BRIGHTNESS_MODE_URI, false, mBrightObserver);
-                    cr.registerContentObserver(BRIGHTNESS_URI, false, mBrightObserver);
-                    cr.registerContentObserver(BRIGHTNESS_ADJ_URI, false, mBrightObserver);
-                    isRegistered = true;
-                }
+        if (mBrightObserver != null) {
+            if (!isRegistered) {
+                final ContentResolver cr = getContentResolver();
+                cr.unregisterContentObserver(mBrightObserver);
+                cr.registerContentObserver(BRIGHTNESS_MODE_URI, false, mBrightObserver);
+                cr.registerContentObserver(BRIGHTNESS_URI, false, mBrightObserver);
+                cr.registerContentObserver(BRIGHTNESS_ADJ_URI, false, mBrightObserver);
+                isRegistered = true;
             }
-        } catch (Throwable throwable) {
         }
     }
 
@@ -383,6 +364,12 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
         mPresenter.onRequestBookInfo(readingBookRequest);
     }
 
+
+    @Override
+    public void getReadingBookInfoSuccess(ReadingBookResponse readingBookResponse) {
+//        Log.e("ReadActivity", "readingBookResponse:" + new Gson().toJson(readingBookResponse));
+    }
+
     /**
      * 请求书籍选集信息
      */
@@ -397,62 +384,81 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
     }
 
     @Override
-    public void getReadingBookInfoSuccess(ReadingBookResponse readingBookResponse) {
-        Log.e("ReadActivity", "readingBookResponse:" + new Gson().toJson(readingBookResponse));
-    }
-
-    @Override
     public void getSelectionInfoSuccess(SelectionResponse selectionResponse) {
-        Log.e("ReadActivity", "selectionResponse:" + new Gson().toJson(selectionResponse));
+//        Log.e("ReadActivity", "selectionResponse:" + new Gson().toJson(selectionResponse));
+        List<BookChapterBean> bookChapters = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            BookChapterBean bookChapterBean = new BookChapterBean();
+            bookChapterBean.setId(MD5Utils.strToMd5By16("100"));
+            bookChapterBean.setBookId("111");
+            bookChapterBean.setLink("https://img.pulaukomik.com/novel/20200220/6aa3ff745de607c578d25a6b4f5fb818.txt");
+            bookChapterBean.setTitle("hhhhh:" + i);
+            if (i == 0) {
+                bookChapterBean.setChapterId("712");
+            } else if (i == 1) {
+                bookChapterBean.setChapterId("713");
+            } else {
+                bookChapterBean.setChapterId("714");
+            }
+            bookChapters.add(bookChapterBean);
+        }
+        mPageLoader.getCollBook().setBookChapters(bookChapters);
+        mPageLoader.refreshChapterList();
+
+        // 如果是目录更新的情况，那么就需要存储更新数据
+        if (mCollBook.isUpdate() && isCollected) {
+            BookRepository.getInstance()
+                    .saveBookChaptersWithAsync(bookChapters);
+        }
     }
 
     protected void initClick() {
-//        mPageLoader.setOnPageChangeListener(
-//                new PageLoader.OnPageChangeListener() {
-//
-//                    @Override
-//                    public void onChapterChange(int pos) {
-//                        mCategoryAdapter.setChapter(pos);
-//                    }
-//
-//                    @Override
-//                    public void requestChapters(List<TxtChapter> requestChapters) {
-//                        mPresenter.loadChapter(mBookId, requestChapters);
-//                        mHandler.sendEmptyMessage(WHAT_CATEGORY);
-//                        //隐藏提示
-//                        mTvPageTip.setVisibility(GONE);
-//                    }
-//
-//                    @Override
-//                    public void onCategoryFinish(List<TxtChapter> chapters) {
-//                        for (TxtChapter chapter : chapters) {
-//                            chapter.setTitle(StringUtils.convertCC(chapter.getTitle(), mPvPage.getContext()));
-//                        }
-//                        mCategoryAdapter.refreshItems(chapters);
-//                    }
-//
-//                    @Override
-//                    public void onPageCountChange(int count) {
-//                        mSbChapterProgress.setMax(Math.max(0, count - 1));
-//                        mSbChapterProgress.setProgress(0);
-//                        // 如果处于错误状态，那么就冻结使用
-//                        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING
-//                                || mPageLoader.getPageStatus() == PageLoader.STATUS_ERROR) {
-//                            mSbChapterProgress.setEnabled(false);
-//                        }
-//                        else {
-//                            mSbChapterProgress.setEnabled(true);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onPageChange(int pos) {
-//                        mSbChapterProgress.post(
-//                                () -> mSbChapterProgress.setProgress(pos)
-//                        );
-//                    }
-//                }
-//        );
+        mPageLoader.setOnPageChangeListener(
+                new PageLoader.OnPageChangeListener() {
+
+                    @Override
+                    public void onChapterChange(int pos) {
+                        mCategoryAdapter.setChapter(pos);
+                    }
+
+                    @Override
+                    public void requestChapters(List<TxtChapter> requestChapters) {
+                        Log.e("ddd","requestChapters():"+new Gson().toJson(requestChapters));
+                        mPresenter.loadChapter(mBookId, requestChapters);
+                        mHandler.sendEmptyMessage(WHAT_CATEGORY);
+                        //隐藏提示
+                        mTvPageTip.setVisibility(GONE);
+                    }
+
+                    @Override
+                    public void onCategoryFinish(List<TxtChapter> chapters) {
+                        for (TxtChapter chapter : chapters) {
+                            chapter.setTitle(StringUtils.convertCC(chapter.getTitle(), mPvPage.getContext()));
+                        }
+                        mCategoryAdapter.refreshItems(chapters);
+                    }
+
+                    @Override
+                    public void onPageCountChange(int count) {
+                        mSbChapterProgress.setMax(Math.max(0, count - 1));
+                        mSbChapterProgress.setProgress(0);
+                        // 如果处于错误状态，那么就冻结使用
+                        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING
+                                || mPageLoader.getPageStatus() == PageLoader.STATUS_ERROR) {
+                            mSbChapterProgress.setEnabled(false);
+                        } else {
+                            mSbChapterProgress.setEnabled(true);
+                        }
+                    }
+
+                    @Override
+                    public void onPageChange(int pos) {
+                        mSbChapterProgress.post(
+                                () -> mSbChapterProgress.setProgress(pos)
+                        );
+                    }
+                }
+        );
 
         mSbChapterProgress.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
@@ -550,11 +556,7 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
 
         mTvNightMode.setOnClickListener(
                 (v) -> {
-                    if (isNightMode) {
-                        isNightMode = false;
-                    } else {
-                        isNightMode = true;
-                    }
+                    isNightMode = !isNightMode;
                     mPageLoader.setNightMode(isNightMode);
                     toggleNightMode();
                 }
@@ -640,7 +642,6 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
     //初始化菜单动画
     private void initMenuAnim() {
         if (mTopInAnim != null) return;
-
         mTopInAnim = AnimationUtils.loadAnimation(this, R.anim.slide_top_in);
         mTopOutAnim = AnimationUtils.loadAnimation(this, R.anim.slide_top_out);
         mBottomInAnim = AnimationUtils.loadAnimation(this, R.anim.slide_bottom_in);
@@ -651,59 +652,75 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
     }
 
     protected void processLogic() {
-//        // 如果是已经收藏的，那么就从数据库中获取目录
-//        if (isCollected) {
-//            Disposable disposable = BookRepository.getInstance()
-//                    .getBookChaptersInRx(mBookId)
-//                    .compose(RxUtils::toSimpleSingle)
-//                    .subscribe(
-//                            (bookChapterBeen, throwable) -> {
-//                                // 设置 CollBook
-//                                mPageLoader.getCollBook().setBookChapters(bookChapterBeen);
-//                                // 刷新章节列表
-//                                mPageLoader.refreshChapterList();
-//                                // 如果是网络小说并被标记更新的，则从网络下载目录
-//                                if (mCollBook.isUpdate() && !mCollBook.isLocal()) {
-//                                    mPresenter.loadCategory(mBookId);
-//                                }
-//                            }
-//                    );
-//            addDisposable(disposable);
-//        } else {
-//            // 从网络中获取目录
+        // 如果是已经收藏的，那么就从数据库中获取目录
+        if (isCollected) {
+            Disposable disposable = BookRepository.getInstance()
+                    .getBookChaptersInRx(mBookId)
+                    .compose(RxUtils::toSimpleSingle)
+                    .subscribe(
+                            (bookChapterBeen, throwable) -> {
+                                Log.e("ReadActivity", "bookChapterBeen:" + new Gson().toJson(bookChapterBeen));
+                                // 设置 CollBook
+                                mPageLoader.getCollBook().setBookChapters(bookChapterBeen);
+                                // 刷新章节列表
+                                mPageLoader.refreshChapterList();
+                            }
+                    );
+            addSubscription(disposable);
+        } else {
+            // 从网络中获取目录
 //            mPresenter.loadCategory(mBookId);
-//        }
+            onRequestSelectionInfo();
+        }
     }
 
     /***************************view************************************/
 
-//    @Override
-//    public void showCategory(List<BookChapterBean> bookChapters) {
-//        mPageLoader.getCollBook().setBookChapters(bookChapters);
-//        mPageLoader.refreshChapterList();
-//
-//        // 如果是目录更新的情况，那么就需要存储更新数据
-//        if (mCollBook.isUpdate() && isCollected) {
-//            BookRepository.getInstance()
-//                    .saveBookChaptersWithAsync(bookChapters);
-//        }
-//    }
-//
-//    @Override
-//    public void finishChapter() {
-//        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING) {
-//            mHandler.sendEmptyMessage(WHAT_CHAPTER);
-//        }
-//        // 当完成章节的时候，刷新列表
-//        mCategoryAdapter.notifyDataSetChanged();
-//    }
-//
-//    @Override
-//    public void errorChapter() {
-//        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING) {
-//            mPageLoader.chapterError();
-//        }
-//    }
+    @Override
+    public void showCategory(List<BookChapterBean> bookChapters1) {
+        Log.e("IReader", "bookChapters:" + new Gson().toJson(bookChapters1));
+        List<BookChapterBean> bookChapters = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            BookChapterBean bookChapterBean = new BookChapterBean();
+            bookChapterBean.setId(MD5Utils.strToMd5By16("100"));
+            bookChapterBean.setBookId("111");
+            bookChapterBean.setLink("https://img.pulaukomik.com/novel/20200220/6aa3ff745de607c578d25a6b4f5fb818.txt");
+            bookChapterBean.setTitle("hhhhh:" + i);
+            if (i == 0) {
+                bookChapterBean.setChapterId("712");
+            } else if (i == 1) {
+                bookChapterBean.setChapterId("713");
+            } else {
+                bookChapterBean.setChapterId("714");
+            }
+            bookChapters.add(bookChapterBean);
+        }
+        mPageLoader.getCollBook().setBookChapters(bookChapters);
+        mPageLoader.refreshChapterList();
+
+        // 如果是目录更新的情况，那么就需要存储更新数据
+        if (mCollBook.isUpdate() && isCollected) {
+            BookRepository.getInstance()
+                    .saveBookChaptersWithAsync(bookChapters);
+        }
+    }
+
+    @Override
+    public void finishChapter() {
+        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING) {
+            mHandler.sendEmptyMessage(WHAT_CHAPTER);
+        }
+        // 当完成章节的时候，刷新列表
+        mCategoryAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void errorChapter() {
+        if (mPageLoader.getPageStatus() == PageLoader.STATUS_LOADING) {
+            mPageLoader.chapterError();
+        }
+    }
+
     @Override
     public void onBackPressed() {
         if (mAblTopMenu.getVisibility() == View.VISIBLE) {
@@ -720,39 +737,11 @@ public class ReadActivity extends BaseActivity implements ReadBookControl.ReadBo
             return;
         }
 
-//        if (!mCollBook.isLocal() && !isCollected
-//                && !mCollBook.getBookChapters().isEmpty()) {
-//            AlertDialog alertDialog = new AlertDialog.Builder(this)
-//                    .setTitle("加入书架")
-//                    .setMessage("喜欢本书就加入书架吧")
-//                    .setPositiveButton("确定", (dialog, which) -> {
-//                        //设置为已收藏
-//                        isCollected = true;
-//                        //设置阅读时间
-//                        mCollBook.setLastRead(StringUtils.
-//                                dateConvert(System.currentTimeMillis(), Constant.FORMAT_BOOK_DATE));
-//
-//                        BookRepository.getInstance()
-//                                .saveCollBookWithAsync(mCollBook);
-//
-//                        exit();
-//                    })
-//                    .setNegativeButton("取消", (dialog, which) -> {
-//                        exit();
-//                    }).create();
-//            alertDialog.show();
-//        } else {
-//            exit();
-//        }
         exit();
     }
 
     // 退出
     private void exit() {
-        // 返回给BookDetail。
-//        Intent result = new Intent();
-//        result.putExtra(BookDetailActivity.RESULT_IS_COLLECTED, isCollected);
-//        setResult(Activity.RESULT_OK, result);
         // 退出
         super.onBackPressed();
     }

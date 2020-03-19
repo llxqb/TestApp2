@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 
 import com.llxqb.testapp.R;
+import com.llxqb.testapp.entity.request.BookContentRequest;
 import com.llxqb.testapp.ireader.RxBus;
 import com.llxqb.testapp.ireader.event.DeleteResponseEvent;
 import com.llxqb.testapp.ireader.event.DeleteTaskEvent;
@@ -300,9 +301,12 @@ public class DownloadService extends BaseService {
         //加载的结果参数
         final int[] result = {LOAD_NORMAL};
 
+        BookContentRequest bookContentRequest = new BookContentRequest();
+        bookContentRequest.token = "32a85c49806810b0a141fe8236f97a2f";
+        bookContentRequest.catalogue_id = bean.getChapterId();
         //问题:(这里有个问题，就是body其实比较大，如何获取数据流而不是对象，)是不是直接使用OkHttpClient交互会更好一点
         Disposable disposable = RemoteRepository.getInstance()
-                .getChapterInfo(bean.getLink())
+                .getChapterInfo(bookContentRequest)
                 //表示在当前环境下执行
                 .subscribe(
                         chapterInfo -> {
@@ -310,7 +314,7 @@ public class DownloadService extends BaseService {
                             //原因是Chapter的title可能重复，但是BookChapter的title不会重复
                             //BookChapter的title = 卷名 + 章节名 chapter 的 title 就是章节名。。
                             BookRepository.getInstance()
-                                    .saveChapterInfo(folderName, bean.getTitle(),chapterInfo.getBody());
+                                    .saveChapterInfo(folderName, bean.getTitle(),chapterInfo.getContent());
                         },
                         e -> {
                             //当前进度加载错误（这里需要判断是什么问题，根据相应的问题做出相应的回答）

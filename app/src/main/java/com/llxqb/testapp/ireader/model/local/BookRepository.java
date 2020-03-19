@@ -210,8 +210,8 @@ public class BookRepository {
         }
 
         ChapterInfoBean bean = new ChapterInfoBean();
-        bean.setTitle(fileName);
-        bean.setBody(sb.toString());
+//        bean.setTitle(fileName);
+        bean.setContent(sb.toString());
         return bean;
     }
 

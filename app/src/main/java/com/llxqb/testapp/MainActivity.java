@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,13 +17,22 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.llxqb.testapp.entity.response.ReadingBookResponse;
 import com.llxqb.testapp.ireader.model.bean.CollBookBean;
 import com.llxqb.testapp.ireader.ui.activity.ReadActivity;
 import com.llxqb.testapp.ireader.utils.Constant;
 import com.llxqb.testapp.ireader.utils.MD5Utils;
 import com.llxqb.testapp.ireader.utils.StringUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
     ConstraintLayout mContainerLayout;
@@ -54,18 +64,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        String FilePath = Environment.getExternalStorageDirectory() + "/all.txt";
-        File file = new File(FilePath);
-        CollBookBean collBookBean = convertCollBook(file);
-
+//        String FilePath = Environment.getExternalStorageDirectory() + "/deviceid.txt";
+//        File file = new File(FilePath);
+//        CollBookBean collBookBean = convertCollBook(file);
+        CollBookBean collBookBean = new CollBookBean();
+        collBookBean.set_id(MD5Utils.strToMd5By16("100"));//MD5Utils.strToMd5By16("100")
+        collBookBean.setTitle("我是刘立");
         TextView tx3 = findViewById(R.id.tx3);
         tx3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 ReadActivity.startActivity(MainActivity.this,
-                        collBookBean, true);
+                        collBookBean, false);
             }
         });
+
+
     }
 
     /**
@@ -85,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
         textView.setLayoutParams(layoutParams);
         mContainerLayout.addView(view1);  // 调用一个参数的addView方法
     }
-
 
 
     /**
@@ -112,4 +125,25 @@ public class MainActivity extends AppCompatActivity {
                 dateConvert(System.currentTimeMillis(), Constant.FORMAT_BOOK_DATE));
         return collBook;
     }
+
+    /**
+     *
+     */
+    private CollBookBean convertCollBook(ReadingBookResponse.CatalogueBean catalogueBean) {
+        CollBookBean collBook = new CollBookBean();
+
+        collBook.set_id(MD5Utils.strToMd5By16("17"));
+        collBook.setTitle(catalogueBean.getCatalogue_name());
+        collBook.setAuthor("");
+        collBook.setShortIntro("");
+        collBook.setCover(catalogueBean.getSquare_cover());
+        collBook.setLocal(false);
+        collBook.setLastChapter("开始阅读");
+        collBook.setUpdated("");
+        collBook.setLastRead(StringUtils.
+                dateConvert(System.currentTimeMillis(), Constant.FORMAT_BOOK_DATE));
+        return collBook;
+    }
+
+
 }

@@ -22,7 +22,7 @@ public class Constant {
     public static final String SEX_GIRL = "girl";
 
     /*URL_BASE*/
-    public static final String API_BASE_URL = "http://api.zhuishushenqi.com";
+    public static final String API_BASE_URL = "https://www.pulaukomik.com";
     public static final String IMG_BASE_URL = "http://statics.zhuishushenqi.com";
     //book type
     public static final String BOOK_TYPE_COMMENT = "normal";

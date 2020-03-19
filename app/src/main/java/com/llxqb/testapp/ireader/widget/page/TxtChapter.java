@@ -19,6 +19,16 @@ public class TxtChapter{
     //章节内容在文章中的终止位置(本地)
     long end;
 
+    String chapterId;
+
+    public String getChapterId() {
+        return chapterId;
+    }
+
+    public void setChapterId(String chapterId) {
+        this.chapterId = chapterId;
+    }
+
     public String getBookId() {
         return bookId;
     }

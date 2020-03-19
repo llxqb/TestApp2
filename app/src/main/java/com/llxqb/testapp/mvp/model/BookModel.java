@@ -1,6 +1,7 @@
 package com.llxqb.testapp.mvp.model;
 
 import com.google.gson.Gson;
+import com.llxqb.testapp.entity.request.BookContentRequest;
 import com.llxqb.testapp.entity.request.ReadingBookRequest;
 import com.llxqb.testapp.entity.request.SelectionRequest;
 import com.llxqb.testapp.network.networkapi.BookApi;
@@ -40,6 +41,14 @@ public class BookModel {
      */
     public Observable<ResponseData> onRequestSelectionInfo(SelectionRequest request) {
         return mBookApi.onRequestSelectionInfo(mGson.toJson(request)).map(mTransform::transformCommon);
+    }
+
+
+    /**
+     * 根据章节id获取章节内容
+     */
+    public Observable<ResponseData> onRequestChapterInfo(BookContentRequest request) {
+        return mBookApi.onRequestChapterInfo(mGson.toJson(request)).map(mTransform::transformCommon);
     }
 
 }

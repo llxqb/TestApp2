@@ -68,22 +68,14 @@ public class ChapterInfoBean {
      我们的目标，依旧是……点击榜，推荐榜，第一！
      */
 
-    private String title;
-    private String body;
+//    private String title;
+    private String content;
 
-    public String getTitle() {
-        return title;
+    public String getContent() {
+        return content;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
+    public void setContent(String content) {
+        this.content = content;
     }
 }
